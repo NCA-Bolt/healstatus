@@ -32,7 +32,7 @@ addon.updateFollow = function()
   end
 
 	-- logic. never let the target player go outside of follow range
-	if (addon.followBean.targetName and addon.followBean.target) then
+	if not (addon.followBean.targetName and addon.followBean.target) then
 		return
 	end
 

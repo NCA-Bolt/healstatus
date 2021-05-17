@@ -780,7 +780,6 @@ addon.getActionBean = function()
 		addon.followBean.target = focusValue["targetString"];
 	end
 	
-
 	for raidIndex = 1, 40 do
 		-- update the raid members
 		local friendValue = addon.updateFriendAtRaidIndex(raidIndex);
@@ -1056,6 +1055,12 @@ addon.updateFriendAtRaidIndex = function(raidIndex)
 
 	local object = addon.friendBean[guid] or {};
 
+	if raidIndex == FOCUS_INDEX then
+		name = addon.followBean.targetName;
+		guid = addon.followBean.targetName;
+		online = true;
+	end
+
 	object.blessingApplied = object.blessingApplied or 0;
 	object.blessingRemoved = object.blessingRemoved or BIG_MAX;
 
@@ -1070,6 +1075,7 @@ addon.updateFriendAtRaidIndex = function(raidIndex)
 	object.targetString = targetString;
 	object.name = name; 
 	object.class = class;
+
 
 	local reaction = UnitReaction("player", targetString);
 	if (reaction and (UnitReaction("player", targetString) <= 3)) then
