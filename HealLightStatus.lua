@@ -776,7 +776,7 @@ addon.getActionBean = function()
 	
 	local focusValue = addon.updateFriendAtRaidIndex(FOCUS_INDEX);
 
-	if (focusValue["name"] == addon.followBean.targetName) then
+	if (focusValue and focusValue["name"] == addon.followBean.targetName) then
 		addon.followBean.target = focusValue["targetString"];
 	end
 	

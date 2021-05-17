@@ -32,6 +32,10 @@ addon.updateFollow = function()
   end
 
 	-- logic. never let the target player go outside of follow range
+	if (addon.followBean.targetName and addon.followBean.target) then
+		return
+	end
+
 	if (UnitIsDeadOrGhost(addon.followBean.target)) then
 		return;
 	end
@@ -44,64 +48,62 @@ addon.updateFollow = function()
 		return
 	end
 
-	if (addon.followBean.targetName and addon.followBean.target) then
-		local inTen = CheckInteractDistance(addon.followBean.target, 2); -- 10 yard range
-		local inTwenty = IsItemInRange(6450, addon.followBean.target);
-		local inThirty = CheckInteractDistance(addon.followBean.target, 4); -- 30 yard range
-		local inFourty = UnitInRange(addon.followBean.target);
+	local inTen = CheckInteractDistance(addon.followBean.target, 2); -- 10 yard range
+	local inTwenty = IsItemInRange(6450, addon.followBean.target);
+	local inThirty = CheckInteractDistance(addon.followBean.target, 4); -- 30 yard range
+	local inFourty = UnitInRange(addon.followBean.target);
 
-    if (inFourty and addon.getShouldMount()) then
-      addon.followBean.followAction = "Mount";
-      addon.followBean.followScore = DEFAULT_MOUNT_SCORE;
-      addon.followBean.followTarget = -1;
+	if (inFourty and addon.getShouldMount()) then
+		addon.followBean.followAction = "Mount";
+		addon.followBean.followScore = DEFAULT_MOUNT_SCORE;
+		addon.followBean.followTarget = -1;
 
+		if (LightStatus.onlyFollow) then
+			addon.followBean.followScore = FORCE_FOLLOW_SCORE;
+		end
+
+		return;
+	end
+
+	if (not inThirty) then
+		addon.followBean.followScore = 0;
+
+		-- find a new follow target
+		for k, v in pairs(addon.friendBean) do
+			if (v ~= nil) then
+				if ((not (k == addon.playerGuid)) and v.isInFollowRange) then
+					addon.followBean.followTarget = v.targetString;
+					addon.followBean.followAction = "Follow";
+					addon.followBean.followScore = DEFAULT_PRIO_FOLLOW_SCORE;
+					
+					if (LightStatus.onlyFollow) then
+						addon.followBean.followScore = FORCE_FOLLOW_SCORE;
+					end
+					
+					break;
+				end
+			end
+		end
+	else
+		addon.followBean.followTarget = addon.followBean.target;
+		addon.followBean.followAction = "Follow";
+		addon.followBean.followScore = 0;
+		
+		if ((not addon.playerBean["isInCombat"]) or (GetUnitSpeed(addon.followBean.target) ~= 0)) then
 			if (LightStatus.onlyFollow) then
 				addon.followBean.followScore = FORCE_FOLLOW_SCORE;
+			elseif (inThirty and not inTwenty) then
+				addon.followBean.followScore = DEFAULT_PRIO_FOLLOW_SCORE;
+			elseif (inTwenty and not inTen) then
+				addon.followBean.followScore = DEFAULT_FOLLOW_SCORE;
 			end
+		end
 
-      return;
-    end
+		if ((addon.followBean.followScore > 0) and
+				(addon.playerBean["speed"] > 0)) then
 
-		if (not inThirty) then
-			addon.followBean.followScore = 0;
-
-			-- find a new follow target
-			for k, v in pairs(addon.friendBean) do
-				if (v ~= nil) then
-					if ((not (k == addon.playerGuid)) and v.isInFollowRange) then
-						addon.followBean.followTarget = v.targetString;
-            addon.followBean.followAction = "Follow";
-						addon.followBean.followScore = DEFAULT_PRIO_FOLLOW_SCORE;
-						
-						if (LightStatus.onlyFollow) then
-							addon.followBean.followScore = FORCE_FOLLOW_SCORE;
-						end
-						
-						break;
-					end
-				end
-			end
-		else
-			addon.followBean.followTarget = addon.followBean.target;
-      addon.followBean.followAction = "Follow";
-			addon.followBean.followScore = 0;
-			
-			if ((not addon.playerBean["isInCombat"]) or (GetUnitSpeed(addon.followBean.target) ~= 0)) then
-				if (LightStatus.onlyFollow) then
-					addon.followBean.followScore = FORCE_FOLLOW_SCORE;
-				elseif (inThirty and not inTwenty) then
-					addon.followBean.followScore = DEFAULT_PRIO_FOLLOW_SCORE;
-				elseif (inTwenty and not inTen) then
-					addon.followBean.followScore = DEFAULT_FOLLOW_SCORE;
-				end
-			end
-
-      if ((addon.followBean.followScore > 0) and
-					(addon.playerBean["speed"] > 0)) then
-  
-				-- assume player is moving
-        addon.followBean.followAction = "Jump";
-      end
-    end
+			-- assume player is moving
+			addon.followBean.followAction = "Jump";
+		end
 	end
 end
