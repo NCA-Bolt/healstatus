@@ -44,7 +44,7 @@ addon.updateFollow = function()
 		return
 	end
 
-	if (addon.followBean.targetName) then
+	if (addon.followBean.targetName and addon.followBean.target) then
 		local inTen = CheckInteractDistance(addon.followBean.target, 2); -- 10 yard range
 		local inTwenty = IsItemInRange(6450, addon.followBean.target);
 		local inThirty = CheckInteractDistance(addon.followBean.target, 4); -- 30 yard range

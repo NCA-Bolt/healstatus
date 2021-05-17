@@ -704,7 +704,7 @@ addon.getActionBeanPriest = function()
 
 				if (not addon.playerBean["isMoving"]) then
 					-- can only cast moving things
-					if (v["flashHealScore"] gand v["flashHealScore"] > highestActionValue) then
+					if (v["flashHealScore"] and v["flashHealScore"] > highestActionValue) then
 						highestAction = "FlashHeal";
 						highestActionValue = v["flashHealScore"];
 						highestActionTarget = v["targetString"];
@@ -774,7 +774,12 @@ addon.getActionBean = function()
 	local friendCount = 0;
 	local friendHealthRatio = 0;
 	
-	addon.updateFriendAtRaidIndex(FOCUS_INDEX);
+	local focusValue = addon.updateFriendAtRaidIndex(FOCUS_INDEX);
+
+	if (focusValue["name"] == addon.followBean.targetName) then
+		addon.followBean.target = focusValue["targetString"];
+	end
+	
 
 	for raidIndex = 1, 40 do
 		-- update the raid members
