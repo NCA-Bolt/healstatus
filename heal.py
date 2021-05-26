@@ -17,15 +17,16 @@ SHIFT_ENCODE_VALUE = 4096
 
 LIGHT_SIZE = 4
 
-LIGHT_RAID_INDEX_COUNT = 16
+LIGHT_KEY_COUNT = 1
+LIGHT_TARGET_COUNT = 2
+LIGHT_ACTION_COUNT = 2
 
-SUB_LIGHT_PLAYER_INDEX = 1
-SUB_LIGHT_PARTY_INDEX = 2
-SUB_LIGHT_RAID_INDEX = 8
+TARGET_LIGHT_PLAYER_VALUE = 1
+TARGET_LIGHT_PARTY_VALUE = 2
+TARGET_LIGHT_FOCUS_VALUE = 7
+TARGET_LIGHT_RAID_VALUE = 8
 
-LIGHT_RAID_ACTION_COUNT = 5
-
-SUB_LIGHT_ACTION_INDEXES = {
+LIGHT_ACTION_VALUES = {
 	0: 21, # r - "Light"
 	1: 33, # 4 - "Flash"
 	2: 45, # = - "Blessing"
@@ -69,8 +70,6 @@ PIXEL_VALUE_THRESHOLD = 0.5 * 0xFF
 GCD_THRESHOLD = 1.44
 MOUSE_MOVE_IGNORE = 3.00
 
-ACTION_PIXEL_X = LIGHT_RAID_INDEX_COUNT
-
 WINDOW_SWAP_FOCUS_THRESHOLD = 0.5
 
 ### GLOBAL VARIABLES ###
@@ -106,7 +105,7 @@ def targetIndexToSerial(v):
   # player values = 0, 1, 2
   # party values = 4, 5, 6, 7, 8, 9
   retValue = 0
-  if (v >= 2 and v < SUB_LIGHT_RAID_INDEX):
+  if (v >= 2 and v < TARGET_LIGHT_RAID_VALUE):
     partyEncode = 0x37
     # in party
     partyValue = v - 1
@@ -114,7 +113,7 @@ def targetIndexToSerial(v):
 
     return partyEncode + modifierValues
     
-  elif (v >= SUB_LIGHT_RAID_INDEX):
+  elif (v >= TARGET_LIGHT_RAID_VALUE):
     raidEncodes = [
       0x2f,
       0x30,
@@ -122,7 +121,7 @@ def targetIndexToSerial(v):
       0x34,
       0x38
     ]
-    raidValue = v - SUB_LIGHT_RAID_INDEX
+    raidValue = v - TARGET_LIGHT_RAID_VALUE
     modifierValues = getTargetModifier(raidValue)
 
     raidKey = math.floor(raidValue / 8)
@@ -171,28 +170,20 @@ def getPixel(x, y):
 
   return (r, g, b)
 
-def getSubPixelValue(sx, pc, bl = 0, bt = 0):
-  for pi in range(pc):
-    pixel = getPixel(bl + (sx + pi) * LIGHT_SIZE, bt)
+def getSubPixelValue(startingOffset, pixelCount, bufferLeft = 0, bufferTop = 0):
+  pixelValue = 0
 
-    # activePixelCount = (1, 0)[pixel[0] > PIXEL_VALUE_THRESHOLD] + (1, 0)[pixel[1] > PIXEL_VALUE_THRESHOLD] + (1, 0)[pixel[2] > PIXEL_VALUE_THRESHOLD];
-
-    # if (activePixelCount > 1):
-    #   return -1
+  for i in range(pixelCount):
+    pixel = getPixel(bufferLeft + (startingOffset + i) * LIGHT_SIZE, bufferTop)
 
     if (pixel[0] > PIXEL_VALUE_THRESHOLD):
-      # print("r: " + str(pi) + " .. " + str(pixel[0]))
-
-      return ((pi * 3) + 0)
+      pixelValue += 2 ** (i * 3 + 0)
     if (pixel[1] > PIXEL_VALUE_THRESHOLD):
-      # print("g: " + str(pi) + " .. " + str(pixel[1]))
-
-      return (pi * 3) + 1
+      pixelValue += 2 ** (i * 3 + 1)
     if (pixel[2] > PIXEL_VALUE_THRESHOLD):
-      # print("b: " + str(pi) + " .. " + str(pixel[2]))
+      pixelValue += 2 ** (i * 3 + 2)
 
-      return (pi * 3) + 2
-  return -1
+  return pixelValue
 
 def getCurrentTarget():
   return ''
@@ -377,10 +368,16 @@ while True:
     currentActiveWindow.nextCommand = None
     continue
 
-  currentActionIndex = getSubPixelValue(LIGHT_RAID_INDEX_COUNT, LIGHT_RAID_ACTION_COUNT, currentActiveWindow.x, currentActiveWindow.y)
+  currentKeyValue = getSubPixelValue(0, LIGHT_KEY_COUNT, currentActiveWindow.x, currentActiveWindow.y)
+
+  if (currentKeyValue == 0):
+    doSleep(0.05)
+    continue
+
+  currentActionIndex = getSubPixelValue(LIGHT_KEY_COUNT + LIGHT_TARGET_COUNT, LIGHT_ACTION_COUNT, currentActiveWindow.x, currentActiveWindow.y)
 
   if (currentActionIndex != -1):
-    currentTargetIndex = getSubPixelValue(0, LIGHT_RAID_INDEX_COUNT, currentActiveWindow.x, currentActiveWindow.y)
+    currentTargetIndex = getSubPixelValue(LIGHT_KEY_COUNT, LIGHT_TARGET_COUNT, currentActiveWindow.x, currentActiveWindow.y)
 
     print("CA: " + str(currentActionIndex) + " : " + str(currentTargetIndex))
 
@@ -396,7 +393,7 @@ while True:
     elif ((currentActionIndex in FORCE_OVERRIDE_INDEXES) or deltaTimeGCD > GCD_THRESHOLD):
       if (currentActionIndex in RANGE_ACTION_INDEXES):
         # start the cast
-        writeToSerial(SUB_LIGHT_ACTION_INDEXES[currentActionIndex])
+        writeToSerial(LIGHT_ACTION_VALUES[currentActionIndex])
         doSleep(0.025 + (random.random() / 20))
 
         # click the cast
@@ -419,5 +416,5 @@ while True:
 
         currentActiveWindow.lastActionIndex = currentActionIndex
 
-        writeToSerial(SUB_LIGHT_ACTION_INDEXES[currentActionIndex])
+        writeToSerial(LIGHT_ACTION_VALUES[currentActionIndex])
         currentActiveWindow.lastGCDUpdateTime = currentTime

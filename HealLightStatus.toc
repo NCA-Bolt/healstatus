@@ -17,6 +17,7 @@ libs\LibHealComm-4.0\LibHealComm-4.0.xml
 
 embeds.xml
 
+LightHandler.lua
 ScoreCalculator.lua
 CleanseCalculator.lua
 GestureHandler.lua

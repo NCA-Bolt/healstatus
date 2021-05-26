@@ -51,7 +51,7 @@ addon.updateFollow = function()
 	local inTen = CheckInteractDistance(addon.followBean.target, 2); -- 10 yard range
 	local inTwenty = IsItemInRange(6450, addon.followBean.target);
 	local inThirty = CheckInteractDistance(addon.followBean.target, 4); -- 30 yard range
-	local inFourty = UnitInRange(addon.followBean.target);
+	local inFourty = IsItemInRange(34471, addon.followBean.target);
 
 	if (inFourty and addon.getShouldMount()) then
 		addon.followBean.followAction = "Mount";

@@ -24,8 +24,6 @@ local TANK_STILL_AOE_DURATION_THRESHOLD = 8;
 
 local BIG_MAX = 9999;
 
-local LIGHT_SIZE = 4;
-
 local FORCE_ACTION_TIME = 1.5;
 local FLASH_TIME = 2;
 local LIGHT_TIME = 3;
@@ -36,84 +34,8 @@ local COMBAT_DEFAULT_VALUE = 14;
 local RESOLVE_THRESHOLD = 4;
 local COMBAT_FOLLOW_SCALAR = 0.5;
 
-local LIGHT_ROWS = 100;
-local LIGHT_RAID_INDEX_COUNT = 16;
-local LIGHT_RAID_ACTION_COUNT = 5;
-
 local OUT_OF_LINE_OF_SIGHT_FADE = 18;
 local OUT_OF_LINE_OF_SIGHT_FADE_SCALAR = 3;
-
-local SUB_LIGHT_ACTION_INDEXES = {
-	Light = 0,
-	FlashSix = 1,
-
-	Blessing = 2,
-	BlessingAlt = 3,
-	Cleanse = 4,
-
-	Drink = 5,
-
-	Follow = 6,
-	Jump = 7,
-
-	FlashFour = 8,
-	FlashOne = 9,
-
-	Ressurect = 10,
-
-	Mount = 11,
-
-	Protection = 13,
-	Bubble = 14,
-
-	Nothing = -1
-};
-local SUB_LIGHT_ACTION_INDEXES_PRIEST = {
-	GreaterHeal = 0,
-	Heal = 1,
-	FlashHeal = 8,
-
-	Fortitude = 2,
-	Spirit = 3,
-	
-	DispelMagic = 4,
-	CleanseDisease = 9,
-
-	Drink = 5,
-	Follow = 6,
-	Jump = 7,
-
-	Ressurect = 10,
-
-	Mount = 11,
-	Nothing = -1
-};
-local SUB_LIGHT_ACTION_INDEXES_WARLOCK = {
-	SearingPain = 0,
-
-	SummonImp = 2,
-	SiphonSoul = 3,
-
-	Immolate = 4,
-
-	Drink = 5, -- Life tap
-	Follow = 6,
-	Jump = 7,
-
-	Mount = 11,
-
-	RainOfFire = 12,
-	Nothing = -1
-};
-
-local LIGHT_COUNT = 
-	LIGHT_RAID_INDEX_COUNT +
-	LIGHT_RAID_ACTION_COUNT;
-
-local SUB_LIGHT_PLAYER_INDEX = 1;
-local SUB_LIGHT_PARTY_INDEX = 2;
-local SUB_LIGHT_FOCUS_INDEX = 7;
-local SUB_LIGHT_RAID_INDEX = 8;
 
 local FOCUS_INDEX = -1234;
 
@@ -204,34 +126,6 @@ addon.isWarlock = function()
 	return playerClass == "Warlock";
 end
 
-addon.updateLightStatus = function(index, r, g, b)
-	if (addon.lights[index] ~= nil) then
-		local color = r + g * 2 + b * 4;
-
-		if (addon.lights[index].previousColor ~= color) then
-			if (color == 1) then
-				addon.lights[index].texture:SetTexture("Interface\\AddOns\\HealLightStatus\\assets\\red");
-			elseif (color == 2) then
-				addon.lights[index].texture:SetTexture("Interface\\AddOns\\HealLightStatus\\assets\\green");
-			elseif (color == 3) then
-				addon.lights[index].texture:SetTexture("Interface\\AddOns\\HealLightStatus\\assets\\yellow");
-			elseif (color == 4) then
-				addon.lights[index].texture:SetTexture("Interface\\AddOns\\HealLightStatus\\assets\\blue");
-			elseif (color == 5) then
-				addon.lights[index].texture:SetTexture("Interface\\AddOns\\HealLightStatus\\assets\\magenta");
-			elseif (color == 6) then
-				addon.lights[index].texture:SetTexture("Interface\\AddOns\\HealLightStatus\\assets\\teal");
-			elseif (color == 7) then
-				addon.lights[index].texture:SetTexture("Interface\\AddOns\\HealLightStatus\\assets\\white");
-			else
-				addon.lights[index].texture:SetTexture("Interface\\AddOns\\HealLightStatus\\assets\\black");
-			end
-			addon.lights[index].previousColor = color;
-
-			-- print("color updated: " .. tostring(index) .. " to " .. tostring(color));
-		end
-	end
-end
 addon.updateUI = function()
 	if (addon.lights[0] ~= nil) then
 		-- print('')
@@ -245,14 +139,7 @@ addon.onUpdateHandler = function(self, elapsed)
 	end
 
 	if (UnitIsDeadOrGhost("player")) then
-		for i=1, LIGHT_RAID_INDEX_COUNT do
-			addon.updateLightStatus(i, 0, 0, 0);
-		end
-	
-		for i=1, LIGHT_RAID_ACTION_COUNT do
-			local adjustedI = LIGHT_RAID_INDEX_COUNT + i;
-			addon.updateLightStatus(adjustedI, 0, 0, 0);
-		end
+		addon.clearLights();
 		addon.updateUI();
 		
 		return;
@@ -274,66 +161,8 @@ addon.onUpdateHandler = function(self, elapsed)
 			end
 		end
 
-		addon.nextCastTarget = addon.nextActionBean.target;
-		addon.nextCastAbility = addon.nextActionBean.action;
-
 		-- print(tostring(addon.nextCastAbility) .. " : " .. tostring(addon.nextCastTarget));
-		local target;
-		local targetSubIndex = -1;
-
-		if (type(addon.nextCastTarget) == "number") then
-			target = addon.nextCastTarget;
-			targetSubIndex = addon.nextCastTarget;
-		else
-			target = addon.getIndexFromTargetString(addon.nextCastTarget);
-			
-			local friend = addon.getFriendFromTargetString(addon.nextCastTarget);
-			if (friend) then
-				friend.isOutOfLOS = false;
-			end
-				
-			if (target) then
-				if (target.type == "player") then
-					targetSubIndex = SUB_LIGHT_PLAYER_INDEX;
-				elseif (target.type == "focus") then
-					targetSubIndex = SUB_LIGHT_FOCUS_INDEX;
-				elseif (target.type == "party") then
-					targetSubIndex = SUB_LIGHT_PARTY_INDEX + target.index;
-				elseif (target.type == "raid") then
-					targetSubIndex = SUB_LIGHT_RAID_INDEX + target.index;
-				end
-			end
-		end
-
-		local subIndexMap = 
-			(addon.isPaladin() and SUB_LIGHT_ACTION_INDEXES) or
-			(addon.isPriest() and SUB_LIGHT_ACTION_INDEXES_PRIEST) or
-			(addon.isWarlock() and SUB_LIGHT_ACTION_INDEXES_WARLOCK) or
-			SUB_LIGHT_ACTION_INDEXES;
-		
-		local actionSubIndex = subIndexMap[addon.nextCastAbility];
-
-		for i=1, LIGHT_RAID_INDEX_COUNT do
-			local subIndexStart = ((i - 1) * 3) + 1;
-
-			local r = ((targetSubIndex - 0) == subIndexStart and 1) or 0;
-			local g = ((targetSubIndex - 1) == subIndexStart and 1) or 0;
-			local b = ((targetSubIndex - 2) == subIndexStart and 1) or 0;
-
-			addon.updateLightStatus(i, r, g, b);
-		end
-	
-
-		for i=1, LIGHT_RAID_ACTION_COUNT do
-			local adjustedI = LIGHT_RAID_INDEX_COUNT + i;
-			local subIndexStart = ((i - 1) * 3);
-
-			local r = ((actionSubIndex - 0) == subIndexStart and 1) or 0;
-			local g = ((actionSubIndex - 1) == subIndexStart and 1) or 0;
-			local b = ((actionSubIndex - 2) == subIndexStart and 1) or 0;
-
-			addon.updateLightStatus(adjustedI, r, g, b);
-		end
+		addon.writeLights(addon.nextActionBean.target, addon.nextActionBean.action);
 	end
 	addon.updateUI();
 end
@@ -1105,8 +934,14 @@ addon.updateFriendAtRaidIndex = function(raidIndex)
 
 	local speed = GetUnitSpeed(targetString);
 	
-	object.health = health;
-	object.maxHealth = maxHealth;
+	if raidIndex == FOCUS_INDEX then
+		local estimatedFocusHealth = 4500; -- a bit of overhealing
+		object.health = (health / 100) * estimatedFocusHealth;
+		object.maxHealth = estimatedFocusHealth;
+	else 
+		object.health = health;
+		object.maxHealth = maxHealth;	
+	end
 
 	if (speed > 0) then
 		object.isOutOfLOS = false;
@@ -1141,30 +976,11 @@ addon.init = function()
 		return
 	end
 
-	local scale = string.match( GetCVar( "gxWindowedResolution" ), "%d+x(%d+)" );
-	local uiScale = UIParent:GetScale( );
-	local scaleScalar = 768 / scale / uiScale;
-
 	-- Set a consistent view
 	SetView(3);
 	SetView(3);
 	
-	for i=1,LIGHT_COUNT do
-		local ai = i - 1;
-		local x = math.floor(ai / LIGHT_ROWS) * scaleScalar;
-		local y = (ai % LIGHT_ROWS * LIGHT_SIZE) * scaleScalar;
-
-		addon.lights[i] = CreateFrame("frame", nil, UIParent); 
-		addon.lights[i]:SetFrameStrata("TOOLTIP");
-
-		addon.lights[i]:SetWidth(LIGHT_SIZE * scaleScalar);
-		addon.lights[i]:SetHeight(LIGHT_SIZE * scaleScalar);
-		addon.lights[i]:SetPoint("TOPLEFT", UIParent, "TOPLEFT", y, y);
-		addon.lights[i].texture = addon.lights[i]:CreateTexture(nil, "BACKGROUND");
-		addon.lights[i].texture:SetAllPoints(true);
-		addon.lights[i]:SetClampedToScreen(true);
-		addon.updateLightStatus(i, 1, 0, 0);
-	end
+	addon.initLights();
 	
 	addon.initMacro();
 	if (addon.isWarlock()) then
