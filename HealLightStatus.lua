@@ -38,6 +38,7 @@ local OUT_OF_LINE_OF_SIGHT_FADE = 18;
 local OUT_OF_LINE_OF_SIGHT_FADE_SCALAR = 3;
 
 local FOCUS_INDEX = -1234;
+local PLAYER_INDEX = -1233;
 
 local BLESSING_KEY = "Blessing";
 local FORTITUDE_KEY = "Fortitude";
@@ -626,6 +627,8 @@ addon.getActionBean = function()
 			end
 		end
 	end
+
+	addon.updateFriendAtRaidIndex(PLAYER_INDEX);
 	
 	addon.currentDangerValue = 1 - (friendHealthRatio / (friendCount + 1));
 
@@ -740,6 +743,10 @@ end
 addon.getTargetStringFromIndex = function(index)
 	if (index == FOCUS_INDEX) then
 		return "focus";
+	end
+
+	if (index == PLAYER_INDEX) then
+		return "player";
 	end
 
 	local name, rank, subgroup, _, class, _, zone, online, isDead, role = GetRaidRosterInfo(index);
@@ -885,8 +892,14 @@ addon.updateFriendAtRaidIndex = function(raidIndex)
 	local object = addon.friendBean[guid] or {};
 
 	if raidIndex == FOCUS_INDEX then
-		name = addon.followBean.targetName;
-		guid = addon.followBean.targetName;
+		name = UnitName("focus");
+		guid = name;
+		online = true;
+	end
+
+	if raidIndex == PLAYER_INDEX then
+		name = UnitName("player");
+		guid = name;
 		online = true;
 	end
 
