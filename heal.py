@@ -27,7 +27,7 @@ TARGET_LIGHT_FOCUS_VALUE = 7
 TARGET_LIGHT_RAID_VALUE = 8
 
 TARGET_INTERACT_TARGET_VALUE = 9
-TARGET_INTERACT_ACTION_VALUE = 57
+TARGET_INTERACT_ACTION_VALUE = 0x36
 
 LIGHT_ACTION_VALUES = {
 	0: 21, # r - "Light"
@@ -48,8 +48,6 @@ LIGHT_ACTION_VALUES = {
   # unimplimented
   13: SHIFT_ENCODE_VALUE + 23, # SHIFT + t - "Blessing of Protection"
   14: SHIFT_ENCODE_VALUE + 8, # SHIFT + e - "Divine Shield"
-
-  31: SHIFT_ENCODE_VALUE + TARGET_ENCODE_START - 1, # Accept Trade
 
 	15: -1, # "Nothing"
 }
@@ -76,6 +74,9 @@ GCD_THRESHOLD = 1.44
 MOUSE_MOVE_IGNORE = 3.00
 
 WINDOW_SWAP_FOCUS_THRESHOLD = 0.5
+
+LIGHT_KEY_NORMAL = 1
+LIGHT_KEY_NO_TARGET = 2
 
 ### GLOBAL VARIABLES ###
 currentTime = time.time()
@@ -378,45 +379,46 @@ while True:
   if (currentKeyValue == 0):
     doSleep(0.05)
     continue
-
+  
+  currentTargetIndex = -1
   currentActionIndex = getSubPixelValue(LIGHT_KEY_COUNT + LIGHT_TARGET_COUNT, LIGHT_ACTION_COUNT, currentActiveWindow.x, currentActiveWindow.y)
 
-  if (currentActionIndex != -1):
+  if (currentKeyValue != LIGHT_KEY_NO_TARGET):
     currentTargetIndex = getSubPixelValue(LIGHT_KEY_COUNT, LIGHT_TARGET_COUNT, currentActiveWindow.x, currentActiveWindow.y)
 
-    print("CA: " + str(currentActionIndex) + " : " + str(currentTargetIndex))
+  print("CA: " + str(currentActionIndex) + " : " + str(currentTargetIndex))
 
-    if ((currentActionIndex == currentActiveWindow.lastActionIndex) and
-        (currentTargetIndex == currentActiveWindow.lastTargetIndex)):
+  if ((currentActionIndex == currentActiveWindow.lastActionIndex) and
+      (currentTargetIndex == currentActiveWindow.lastTargetIndex)):
 
-      # don't do anything for a bit
-      currentActiveWindow.lastTargetIndex = -2  
-      currentActiveWindow.lastActionIndex = -2
+    # don't do anything for a bit
+    currentActiveWindow.lastTargetIndex = -2  
+    currentActiveWindow.lastActionIndex = -2
 
-      doSleep(0.15)
+    doSleep(0.15)
 
-    elif ((currentActionIndex in FORCE_OVERRIDE_INDEXES) or deltaTimeGCD > GCD_THRESHOLD):
-      if (not (currentTargetIndex == -1)):
-        currentActiveWindow.lastTargetIndex = currentTargetIndex
-        writeToSerial(targetIndexToSerial(currentTargetIndex))
+  elif ((currentActionIndex in FORCE_OVERRIDE_INDEXES) or deltaTimeGCD > GCD_THRESHOLD):
+    if (not (currentTargetIndex == -1)):
+      currentActiveWindow.lastTargetIndex = currentTargetIndex
+      writeToSerial(targetIndexToSerial(currentTargetIndex))
 
-        doSleep(0.05 + (random.random() / 20))
+      doSleep(0.05 + (random.random() / 20))
 
-        if (currentActionIndex in INTERACT_ACTION_INDEXES):
-          writeToSerial(TARGET_INTERACT_TARGET_VALUE)
-
-          doSleep(0.05 + (random.random() / 20))
-
-      if (currentActionIndex in STATIONARY_ACTION_INDEXES):
-        writeToSerial(79 + round(random.random()))
-        doSleep(0.025 + (random.random() / 20))
-
-      currentActiveWindow.lastActionIndex = currentActionIndex
-
-      writeToSerial(LIGHT_ACTION_VALUES[currentActionIndex])
-      currentActiveWindow.lastGCDUpdateTime = currentTime
-    
       if (currentActionIndex in INTERACT_ACTION_INDEXES):
-        writeToSerial(TARGET_INTERACT_ACTION_VALUE)
+        writeToSerial(TARGET_INTERACT_TARGET_VALUE)
 
         doSleep(0.05 + (random.random() / 20))
+
+    if (currentActionIndex in STATIONARY_ACTION_INDEXES):
+      writeToSerial(79 + round(random.random()))
+      doSleep(0.025 + (random.random() / 20))
+
+    currentActiveWindow.lastActionIndex = currentActionIndex
+
+    writeToSerial(LIGHT_ACTION_VALUES[currentActionIndex])
+    currentActiveWindow.lastGCDUpdateTime = currentTime
+  
+    if (currentActionIndex in INTERACT_ACTION_INDEXES):
+      writeToSerial(TARGET_INTERACT_ACTION_VALUE)
+
+      doSleep(0.05 + (random.random() / 20))
