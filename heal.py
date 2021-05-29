@@ -113,7 +113,7 @@ def targetIndexToSerial(v):
   if (v >= 2 and v < TARGET_LIGHT_RAID_VALUE):
     partyEncode = 0x37
     # in party
-    partyValue = v - 1
+    partyValue = v - 2
     modifierValues = getTargetModifier(partyValue)
 
     return partyEncode + modifierValues
