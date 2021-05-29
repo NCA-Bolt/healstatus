@@ -5,8 +5,9 @@ local MOUNT_NAMES = {
 };
 local FORCE_FOLLOW_SCORE = 9999;
 local DEFAULT_MOUNT_SCORE = 35;
-local DEFAULT_PRIO_FOLLOW_SCORE = 35;
+local DEFAULT_PRIO_FOLLOW_SCORE = 45;
 local DEFAULT_FOLLOW_SCORE = 15;
+local DEFAULT_INTERACT_SCORE = 15;
 
 local DEFAULT_MOVING_THRESHOLD = 8; -- within 8 seconds, we can start jumpin'.
 local SPEED_THRESHOLD = 7;
@@ -24,6 +25,13 @@ addon.getShouldMount = function()
   end
 
   return false;
+end
+
+addon.getShouldInteract = function()
+	local targetString = addon.followBean.target .. "-target";
+	local withinJudgementRange = IsSpellInRange("Judgement", targetString);
+
+	return withinJudgementRange;
 end
 
 addon.updateFollow = function() 
@@ -60,6 +68,23 @@ addon.updateFollow = function()
 
 		if (LightStatus.onlyFollow) then
 			addon.followBean.followScore = FORCE_FOLLOW_SCORE;
+		end
+
+		return;
+	end
+
+	if (not LightStatus.onlyFollow and (inTen and addon.getShouldInteract())) then
+		addon.followBean.followAction = "Interact";
+		addon.followBean.followScore = DEFAULT_INTERACT_SCORE;
+
+		local targetString = addon.followBean.target .. "-target";
+		local targetStringUnit = UnitGUID(targetString);
+		local targetUnit = UnitGUID("target");
+
+		if (targetStringUnit == targetUnit) then
+			addon.followBean.followTarget = addon.followBean.target;
+		else
+			addon.followBean.followTarget = -1;
 		end
 
 		return;

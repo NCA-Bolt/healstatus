@@ -123,9 +123,6 @@ end
 addon.isPaladin = function() 
 	return playerClass == "Paladin";
 end
-addon.isWarlock = function()
-	return playerClass == "Warlock";
-end
 
 addon.updateUI = function()
 	if (addon.lights[0] ~= nil) then
@@ -381,77 +378,6 @@ addon.getRangedAOEActionBean = function()
   };
 end
 
-addon.getActionBeanWarlock = function()
-	if (addon.playerBean["castingSpell"]) then
-		if (string.match(addon.playerBean["castingSpell"], "Drain") and LightStatus.aoeFocus) then
-			-- try to get an aoe cast
-			local _, duration = GetSpellCooldown(61304);
-
-      if ((not duration) or (duration == 0)) then
-        return addon.getRangedAOEActionBean();
-			end
-		end
-
-		return {
-			action = "Nothing",
-			value = BIG_MAX
-		}
-	else
-		local highestAction = "Nothing";
-		local highestActionValue = RESOLVE_THRESHOLD;
-    local highestActionTarget = "";
-
-    local currentTime = GetTime();
-    
-    local tankCombatDurationThreshold = 
-      (addon.tankBean.isInCombatStart == -1 and false) or 
-      ((currentTime - addon.tankBean.isInCombatStart) > TANK_COMBAT_DURATION_THRESHOLD)
-		-- print(tostring(drinkValue));
-    local tankCombatStillThreshold = 
-      (addon.tankBean.isStillStart == -1 and false) or 
-      ((currentTime - addon.tankBean.isStillStart) > TANK_STILL_DURATION_THRESHOLD)
-
-		-- target tank, cast ability
-		if (addon.playerBean["mana"] < 635) then
-			highestAction = "Drink";
-			highestActionValue = COMBAT_DEFAULT_VALUE;
-    elseif ((not addon.playerBean.isMoving) and 
-      (addon.playerBean.isInCombat)) then
-          
-			if (LightStatus.aoeFocus) then
-        local tankAOEStillThreshold = 
-          (addon.tankBean.isStillStart == -1 and false) or 
-          ((currentTime - addon.tankBean.isStillStart) > TANK_STILL_AOE_DURATION_THRESHOLD);
-  
-        if (tankAOEStillThreshold) then
-          return addon.getRangedAOEActionBean();
-        else 
-          highestAction = "SiphonSoul";
-          highestActionValue = COMBAT_DEFAULT_VALUE;
-          highestActionTarget = addon.tankBean.target;
-        end
-			else 
-				highestAction = "SearingPain";
-				highestActionValue = COMBAT_DEFAULT_VALUE;
-				highestActionTarget = addon.tankBean.target;
-			end
-		end
-
-		if (highestAction == "Nothing" and addon.playerBean.isMoving and (highestActionValue <= RESOLVE_THRESHOLD) and ((GetTime() % (5 - jumpAdjustor)) < 0.5)) then
-			jumpAdjustor = math.random() * 4;
-			-- jump sometimes
-			highestActionValue = RESOLVE_THRESHOLD;
-			highestAction = "Jump";
-		end
-
-		return {
-			value = highestActionValue,
-			target = highestActionTarget,
-			action = highestAction
-		}
-	end
-end
-
 addon.getActionBeanPriest = function() 
 	if (addon.playerBean["castingSpell"]) then
 		-- can't do anything, so just clear info.
@@ -647,12 +573,6 @@ addon.getActionBean = function()
 
 		if (priestBean.value and (priestBean.value > defaultBean.value)) then
 			return priestBean;
-		end
-	elseif (addon.isWarlock()) then
-		local warlockBean = addon.getActionBeanWarlock();
-
-		if (warlockBean.value and (warlockBean.value > defaultBean.value)) then
-			return warlockBean;
 		end
 	end
 	return defaultBean;
@@ -869,19 +789,13 @@ addon.updateFriendForPriest = function(object)
 		object.greaterHealScore = addon.getGreaterHealScore(addon.playerBean["mana"], healthMissing, object.maxHealth, addon.currentDangerValue) * isOutOfLOSValue;
 		object.flashHealScore = addon.getFlashHealScore(addon.playerBean["mana"], healthMissing, object.maxHealth, addon.currentDangerValue) * isOutOfLOSValue;
 	end
-	
+
 	if (isInCleanseRange) then
 		object.dispelMagicScore = highestMagicDebuff * isOutOfLOSValue;
 		object.cleanseDiseaseScore = highestDiseaseDebuff * isOutOfLOSValue;
 
 		object.fortitudeScore = (((not hasFortitude) and FORTITUDE_VALUE) or 0) * isOutOfLOSValue;
 	end
-end
-
-addon.updateFriendForWarlock = function(object)
-	local isOutOfLOSValue = (not object.isOutOfLOS and 1) or 0;
-
-	-- get the enemy target, add it to the list.
 end
 
 addon.updateFriendAtRaidIndex = function(raidIndex)
@@ -964,8 +878,6 @@ addon.updateFriendAtRaidIndex = function(raidIndex)
 		addon.updateFriendForPaladin(object);
 	elseif (addon.isPriest()) then
 		addon.updateFriendForPriest(object);
-	elseif (addon.isWarlock()) then
-		addon.updateFriendForWarlock(object);
 	end
 
 	return object;
@@ -996,9 +908,6 @@ addon.init = function()
 	addon.initLights();
 	
 	addon.initMacro();
-	if (addon.isWarlock()) then
-		addon.initWarlockMacro();
-	end
 
 	addon.playerGuid = UnitGUID("player");
 	addon.initd = true;

@@ -26,6 +26,9 @@ TARGET_LIGHT_PARTY_VALUE = 2
 TARGET_LIGHT_FOCUS_VALUE = 7
 TARGET_LIGHT_RAID_VALUE = 8
 
+TARGET_INTERACT_TARGET_VALUE = 9
+TARGET_INTERACT_ACTION_VALUE = 57
+
 LIGHT_ACTION_VALUES = {
 	0: 21, # r - "Light"
 	1: 33, # 4 - "Flash"
@@ -40,11 +43,13 @@ LIGHT_ACTION_VALUES = {
   10: 37, # 8 - "Res"
   11: 11, # h - "Mount"
 
-  12: 33, # 4 - "Hellfire"
+  12: CONTROL_ENCODE_VALUE + 9, # F
 
   # unimplimented
   13: SHIFT_ENCODE_VALUE + 23, # SHIFT + t - "Blessing of Protection"
   14: SHIFT_ENCODE_VALUE + 8, # SHIFT + e - "Divine Shield"
+
+  31: SHIFT_ENCODE_VALUE + TARGET_ENCODE_START - 1, # Accept Trade
 
 	15: -1, # "Nothing"
 }
@@ -54,7 +59,7 @@ FORCE_OVERRIDE_INDEXES = [
 STATIONARY_ACTION_INDEXES = [
   0, 1, 5, 8, 9, 10, 11
 ]
-RANGE_ACTION_INDEXES = [
+INTERACT_ACTION_INDEXES = [
   12
 ]
 FORCE_COMMAND_DICTIONARY = {
@@ -391,30 +396,27 @@ while True:
       doSleep(0.15)
 
     elif ((currentActionIndex in FORCE_OVERRIDE_INDEXES) or deltaTimeGCD > GCD_THRESHOLD):
-      if (currentActionIndex in RANGE_ACTION_INDEXES):
-        # start the cast
-        writeToSerial(LIGHT_ACTION_VALUES[currentActionIndex])
-        doSleep(0.025 + (random.random() / 20))
+      if (not (currentTargetIndex == -1)):
+        currentActiveWindow.lastTargetIndex = currentTargetIndex
+        writeToSerial(targetIndexToSerial(currentTargetIndex))
 
-        # click the cast
-        windowStep = (currentActiveWindow.h / 5) / 5
+        doSleep(0.05 + (random.random() / 20))
 
-        x = currentActiveWindow.x + (currentActiveWindow.w / 2)
-        y = currentActiveWindow.y + (currentActiveWindow.h / 2) - currentTargetIndex * windowStep
-
-        writeMouseToSerial(x, y)
-      else:
-        if (not (currentTargetIndex == -1)):
-          currentActiveWindow.lastTargetIndex = currentTargetIndex
-          writeToSerial(targetIndexToSerial(currentTargetIndex))
+        if (currentActionIndex in INTERACT_ACTION_INDEXES):
+          writeToSerial(TARGET_INTERACT_TARGET_VALUE)
 
           doSleep(0.05 + (random.random() / 20))
 
-        if (currentActionIndex in STATIONARY_ACTION_INDEXES):
-          writeToSerial(79 + round(random.random()))
-          doSleep(0.025 + (random.random() / 20))
+      if (currentActionIndex in STATIONARY_ACTION_INDEXES):
+        writeToSerial(79 + round(random.random()))
+        doSleep(0.025 + (random.random() / 20))
 
-        currentActiveWindow.lastActionIndex = currentActionIndex
+      currentActiveWindow.lastActionIndex = currentActionIndex
 
-        writeToSerial(LIGHT_ACTION_VALUES[currentActionIndex])
-        currentActiveWindow.lastGCDUpdateTime = currentTime
+      writeToSerial(LIGHT_ACTION_VALUES[currentActionIndex])
+      currentActiveWindow.lastGCDUpdateTime = currentTime
+    
+      if (currentActionIndex in INTERACT_ACTION_INDEXES):
+        writeToSerial(TARGET_INTERACT_ACTION_VALUE)
+
+        doSleep(0.05 + (random.random() / 20))

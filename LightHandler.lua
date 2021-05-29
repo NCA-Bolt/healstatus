@@ -19,9 +19,12 @@ addon.LIGHT_ACTION_VALUES = {
 	Ressurect = 10,
 
 	Mount = 11,
+	Interact = 12,
 
 	Protection = 13,
 	Bubble = 14,
+
+	AcceptTrade = 31,
 
 	Nothing = -1
 };
@@ -43,23 +46,6 @@ addon.LIGHT_ACTION_VALUES_PRIEST = {
 	Ressurect = 10,
 
 	Mount = 11,
-	Nothing = -1
-};
-addon.LIGHT_ACTION_VALUES_WARLOCK = {
-	SearingPain = 0,
-
-	SummonImp = 2,
-	SiphonSoul = 3,
-
-	Immolate = 4,
-
-	Drink = 5, -- Life tap
-	Follow = 6,
-	Jump = 7,
-
-	Mount = 11,
-
-	RainOfFire = 12,
 	Nothing = -1
 };
 
@@ -219,7 +205,6 @@ addon.writeLights = function(nextCastTarget, nextCastAbility)
   local actionValueMap = 
     (addon.isPaladin() and addon.LIGHT_ACTION_VALUES) or
     (addon.isPriest() and addon.LIGHT_ACTION_VALUES_PRIEST) or
-    (addon.isWarlock() and addon.LIGHT_ACTION_VALUES_WARLOCK) or
     addon.LIGHT_ACTION_VALUES;
   
   local actionValue = actionValueMap[addon.nextCastAbility];

@@ -11,6 +11,10 @@ addon.makeMacro = function(name, icon, value)
 end
 
 addon.initMacro = function()
+	addon.makeMacro("Interact", "132163",
+"#showtooltip\n/castsequence reset=20 Seal of Righteousness,Judgement\n/run AcceptTrade();SelectGossipAvailableQuest(1);SelectGossipActiveQuest(1);CompleteQuest();SelectGossipOption(1);AcceptQuest();GetQuestReward(1);");
+	addon.makeMacro("Cleanse", "132163",
+"#showtooltip\n/stopcasting\n/cast [@mouseover,help]Cleanse;Cleanse");
 	addon.makeMacro("Party", "132163", 
 "/tar [mod:shift,mod:ctrl]focus;[mod:shift,mod:alt]party4;[mod:alt]party3;[mod:shift]party2;[mod:ctrl]party1;player");
 	addon.makeMacro("Raid1", "132163", 
@@ -24,13 +28,7 @@ addon.initMacro = function()
 	addon.makeMacro("Raid5", "132163", 
 "/tar [mod:ctrl,mod:alt,mod:shift]raid40;[mod:ctrl,mod:alt]raid39; [mod:ctrl,mod:shift]raid38;[mod:shift,mod:alt]raid37;[mod:alt]raid36;[mod:shift]raid35;[mod:ctrl]raid34;raid33");
 	addon.makeMacro("Modifier", "132163", 
-"/run LightStatus.parseCommand(IsControlKeyDown(),IsAltKeyDown(),IsShiftKeyDown())");
+"/run AcceptTrade();LightStatus.parseCommand(IsControlKeyDown(),IsAltKeyDown(),IsShiftKeyDown())");
 	addon.makeMacro("Follow", "135946", 
 "/follow " .. addon.followBean.targetName);
-end
-addon.initWarlockMacro = function()
-	addon.makeMacro("Sequence", "INV_MISC_QUESTIONMARK", 
-"#showtooltip\n/petattack " .. addon.tankBean.targetName .. "-target\n/castsequence [target=" .. addon.tankBean.targetName .. "-target] reset=combat,combat Immolate,Searing Pain,Searing Pain,Searing Pain,Searing Pain,Searing Pain,Searing Pain,Searing Pain,Searing Pain");
-	addon.makeMacro("Siphon Soul", "INV_MISC_QUESTIONMARK", 
-"#showtooltip\n/cast [target=" .. addon.tankBean.targetName .. "-target] Drain Soul(Rank 1)");
 end

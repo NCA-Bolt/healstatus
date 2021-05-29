@@ -4,30 +4,25 @@ Jump after you Jump (capture spaces, if you're not casting: jump), if you're sta
 
 --
 
+Attacking/Combat.
+-- settings we need
+move with mouse
+
+-- when in a party to the thing.
+
+-- if they have a seal cast it
+-- if the enemy is casting, stun
+
+Loot.
+
+-- 
+
+--
+
 accept trade
+do a macro. // can just bind it to every macro
+/run AcceptTrade();
 
 --
 
-Change the pixel reader/writer: make it completely binary on each sub pixel
-
-[1] - needs read pixel
-[2] - 2 ^ 6 = 64
-  Selection,
-    0 - Nothing, ignore
-    1 - Player
-    2-5 - Party
-    6-46 - Raid
-
-    47 - points on the ground
-
-[2] - 2 ^ 6 = 64
-  Abilities
-    Just as before but simpler
-
-So we can reduce the pixel count down to 5, and have an entry pixel to read.
-
---
-
-Furthermore:
-
-Make a druid cat thingie.  
+I want the paladin to do other shit, whack stuff in a party.
