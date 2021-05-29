@@ -27,7 +27,7 @@ TARGET_LIGHT_FOCUS_VALUE = 7
 TARGET_LIGHT_RAID_VALUE = 8
 
 TARGET_INTERACT_TARGET_VALUE = 9
-TARGET_INTERACT_ACTION_VALUE = 57
+TARGET_INTERACT_ACTION_VALUE = 0x36
 
 LIGHT_ACTION_VALUES = {
 	0: 21, # r - "Light"
@@ -48,8 +48,6 @@ LIGHT_ACTION_VALUES = {
   # unimplimented
   13: SHIFT_ENCODE_VALUE + 23, # SHIFT + t - "Blessing of Protection"
   14: SHIFT_ENCODE_VALUE + 8, # SHIFT + e - "Divine Shield"
-
-  31: SHIFT_ENCODE_VALUE + TARGET_ENCODE_START - 1, # Accept Trade
 
 	15: -1, # "Nothing"
 }
@@ -113,6 +111,7 @@ def targetIndexToSerial(v):
   if (v >= 2 and v < TARGET_LIGHT_RAID_VALUE):
     partyEncode = 0x37
     # in party
+    print("EC: " + str(v))
     partyValue = v - 2
     modifierValues = getTargetModifier(partyValue)
 
@@ -400,12 +399,12 @@ while True:
         currentActiveWindow.lastTargetIndex = currentTargetIndex
         writeToSerial(targetIndexToSerial(currentTargetIndex))
 
-        doSleep(0.05 + (random.random() / 20))
+        doSleep(0.15 + (random.random() / 20))
 
         if (currentActionIndex in INTERACT_ACTION_INDEXES):
           writeToSerial(TARGET_INTERACT_TARGET_VALUE)
 
-          doSleep(0.05 + (random.random() / 20))
+          doSleep(0.25 + (random.random() / 20))
 
       if (currentActionIndex in STATIONARY_ACTION_INDEXES):
         writeToSerial(79 + round(random.random()))
