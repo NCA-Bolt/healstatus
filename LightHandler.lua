@@ -173,7 +173,7 @@ addon.writeLights = function(nextCastTarget, nextCastAbility)
   addon.nextCastTarget = nextCastTarget;
   addon.nextCastAbility = nextCastAbility;
 
-  local keyValue = (((addon.nextCastAbility ~= "Nothing" and 1) or 0) + ((addon.nextCastTarget ~= -1 and 1) or 0);
+  local keyValue = ((addon.nextCastAbility ~= "Nothing" and 1) or 0) + ((addon.nextCastTarget ~= -1 and 1) or 0);
 
   local target;
   local targetValue = 0;
