@@ -1,7 +1,7 @@
 local _, addon = ...;
 
 local MOUNT_NAMES = {
-  "Steed", "Charger", "Battle Tank", "Felsteed", "Mare"
+  "Gryphon", "Steed", "Charger", "Swift", "Battle Tank", "Felsteed", "Mare"
 };
 local FORCE_FOLLOW_SCORE = 9999;
 local DEFAULT_MOUNT_SCORE = 35;
@@ -127,8 +127,10 @@ addon.updateFollow = function()
 		if ((addon.followBean.followScore > 0) and
 				(addon.playerBean["speed"] > 0)) then
 
+			if (addon.onlyFollow) then
 			-- assume player is moving
-			addon.followBean.followAction = "Jump";
+				addon.followBean.followAction = "Jump";
+			end
 		end
 	end
 end

@@ -11,10 +11,14 @@ addon.makeMacro = function(name, icon, value)
 end
 
 addon.initMacro = function()
+	addon.makeMacro("HealInteract", "132163",
+"/cast [");
+
 	addon.makeMacro("Interact", "132163",
-"#showtooltip\n/castsequence reset=20 Seal of Righteousness,Judgement\n/run AcceptTrade();SelectGossipAvailableQuest(1);SelectGossipActiveQuest(1);CompleteQuest();SelectGossipOption(1);AcceptQuest();GetQuestReward(1);");
-	addon.makeMacro("Cleanse", "132163",
-"#showtooltip\n/stopcasting\n/cast [@mouseover,help]Cleanse;Cleanse");
+"#showtooltip\n/cast [mod:alt] Hammer of Justice\n/castsequence reset=20 Seal of Righteousness,Judgement\n/run AcceptTrade();SelectGossipAvailableQuest(1);SelectGossipActiveQuest(1);CompleteQuest();SelectGossipOption(1);AcceptQuest();GetQuestReward(1);");
+	addon.makeMacro("Cast", "132163",
+"#showtooltip\n/stopcasting [mod:alt]\n/cast [mod:ctrl,mod:shift]Redemption;[mod:shift,mod:alt]Holy Light;[mod:alt]Cleanse;[mod:shift]Flash of Light(Rank 1);[mod:ctrl]Flash of Light(Rank 4);Flash of Light");
+
 	addon.makeMacro("Party", "132163", 
 "/tar [mod:shift,mod:ctrl]focus;[mod:shift,mod:alt]party4;[mod:alt]party3;[mod:shift]party2;[mod:ctrl]party1;player");
 	addon.makeMacro("Raid1", "132163", 
@@ -27,6 +31,7 @@ addon.initMacro = function()
 "/tar [mod:ctrl,mod:alt,mod:shift]raid32;[mod:ctrl,mod:alt]raid31; [mod:ctrl,mod:shift]raid30;[mod:shift,mod:alt]raid29;[mod:alt]raid28;[mod:shift]raid27;[mod:ctrl]raid26;raid25");
 	addon.makeMacro("Raid5", "132163", 
 "/tar [mod:ctrl,mod:alt,mod:shift]raid40;[mod:ctrl,mod:alt]raid39; [mod:ctrl,mod:shift]raid38;[mod:shift,mod:alt]raid37;[mod:alt]raid36;[mod:shift]raid35;[mod:ctrl]raid34;raid33");
+
 	addon.makeMacro("Modifier", "132163", 
 "/run AcceptTrade();LightStatus.parseCommand(IsControlKeyDown(),IsAltKeyDown(),IsShiftKeyDown())");
 	addon.makeMacro("Follow", "135946", 

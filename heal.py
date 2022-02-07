@@ -30,16 +30,16 @@ TARGET_INTERACT_TARGET_VALUE = 9
 TARGET_INTERACT_ACTION_VALUE = 0x36
 
 LIGHT_ACTION_VALUES = {
-	0: 21, # r - "Light"
+	0: 34, # 5 - "Light"
 	1: 33, # 4 - "Flash"
 	2: 45, # = - "Blessing"
 	3: 46, # - - "BlessingAlt"
 	4: 32, # 3 - "Cleanse"
-	5: SHIFT_ENCODE_VALUE + 10, # SHIFT + G - "Drink"
+	5: 13, # j - "Drink"
 	6: 39, # 0 - "Follow"
 	7: 44, #   - "Jump",
-	8: SHIFT_ENCODE_VALUE + 33, # SHIFT + 4 - "Light Flash"
-	9: CONTROL_ENCODE_VALUE + 32, # SHIFT + 3 - "Light Light Flash"
+	8: 33, # 4 - "Light Flash"
+	9: ALT_ENCODE_VALUE + 34, # ALT + 4 - "Light Light Flash"
   10: 37, # 8 - "Res"
   11: 11, # h - "Mount"
 
@@ -47,7 +47,7 @@ LIGHT_ACTION_VALUES = {
 
   # unimplimented
   13: SHIFT_ENCODE_VALUE + 23, # SHIFT + t - "Blessing of Protection"
-  14: SHIFT_ENCODE_VALUE + 8, # SHIFT + e - "Divine Shield"
+  14: SHIFT_ENCODE_VALUE + 14, # SHIFT + k - "Divine Shield"
 
 	15: -1, # "Nothing"
 }

@@ -123,6 +123,9 @@ end
 addon.isPaladin = function() 
 	return playerClass == "Paladin";
 end
+addon.isWarrior = function()
+	return playerClass == "Warrior";
+end
 
 addon.updateUI = function()
 	if (addon.lights[0] ~= nil) then
@@ -173,7 +176,7 @@ addon.updatePlayer = function()
 	local mana = UnitPower("player");
 	local manaMax = UnitPowerMax("player");
 
-	local isDrinking = addon.getTargetHasBuff("player", "Drink");
+	local isDrinking = addon.getTargetHasBuff("player", "Drink") or addon.getTargetHasBuff("player", "Underspore Pod");
 
 	addon.playerBean["isDrinking"] = isDrinking;
 	addon.playerBean["speed"] = speed;
@@ -250,7 +253,7 @@ addon.getActionBeanPaladin = function()
 		local health = UnitHealth("target");
 		local healthMissing = maxHealth - health;
 		
-		if (addon.playerBean["castingSpellId"] == 25292) then
+		if (addon.playerBean["castingSpellId"] == 27136) then
 			-- test the current targets info.
 			local testScore = addon.getLightCancelScore(healthMissing);
 			
@@ -260,17 +263,8 @@ addon.getActionBeanPaladin = function()
 					value = BIG_MAX
 				}
 			end
-		elseif (addon.playerBean["castingSpellId"] == 19941) then
-			local testScore = addon.getFlashSixCancelScore(healthMissing);
-
-			if (testScore < RESOLVE_THRESHOLD) then
-				return {
-					action = "Cleanse",
-					value = BIG_MAX
-				}
-			end
-		elseif (addon.playerBean["castingSpellId"] == 19943) then
-			local testScore = addon.getFlashFourCancelScore(healthMissing);
+		elseif (addon.playerBean["castingSpellId"] == 27137) then
+			local testScore = addon.getFlashCancelScore(healthMissing);
 
 			if (testScore < RESOLVE_THRESHOLD) then
 				return {
@@ -316,21 +310,9 @@ addon.getActionBeanPaladin = function()
 						highestActionTarget = v["targetString"];
 					end
 
-					if (v["flashSixScore"] and (v["flashSixScore"] > highestActionValue)) then
+					if (v["flashScore"] and (v["flashScore"] > highestActionValue)) then
 						highestAction = "FlashSix";
-						highestActionValue = v["flashSixScore"];
-						highestActionTarget = v["targetString"];
-					end
-					
-					if (v["flashFourScore"] and v["flashFourScore"] > highestActionValue) then
-						highestAction = (LightStatus.onlyTankHeals and "FlashSix") or "FlashFour";
-						highestActionValue = v["flashFourScore"];
-						highestActionTarget = v["targetString"];
-					end
-					
-					if (addon.playerBean["isInCombat"] and v["flashOneScore"] and v["flashOneScore"] > highestActionValue) then
-						highestAction = (LightStatus.onlyTankHeals and "FlashSix") or "FlashOne";
-						highestActionValue = v["flashOneScore"];
+						highestActionValue = v["flashScore"];
 						highestActionTarget = v["targetString"];
 					end
 					
@@ -701,9 +683,7 @@ addon.setObjectToNoValue = function(guid)
 	if (object) then
 		-- pally stuff
 		object.lightScore = 0;
-		object.flashSixScore = 0;
-		object.flashFourScore = 0;
-		object.flashOneScore = 0;
+		object.flashScore = 0;
 		object.cleanseScore = 0;
 		object.blessingScore = 0;
 		-- priest stuff
@@ -759,9 +739,7 @@ addon.updateFriendForPaladin = function(object)
 		local healthMissing = object.maxHealth - object.health;
 
 		object.lightScore = addon.getLightScore(addon.playerBean["mana"], healthMissing, object.maxHealth, addon.currentDangerValue) * isOutOfLOSValue;
-		object.flashSixScore = addon.getFlashSixScore(addon.playerBean["mana"], healthMissing, object.maxHealth, addon.currentDangerValue) * isOutOfLOSValue;
-		object.flashFourScore = addon.getFlashFourScore(addon.playerBean["mana"], healthMissing, object.maxHealth, addon.currentDangerValue) * isOutOfLOSValue;
-		object.flashOneScore = addon.getFlashOneScore(addon.playerBean["mana"], healthMissing, object.maxHealth, addon.currentDangerValue) * isOutOfLOSValue;
+		object.flashScore = addon.getflashScore(addon.playerBean["mana"], healthMissing, object.maxHealth, addon.currentDangerValue) * isOutOfLOSValue;
 	end
 	
 	if (isInCleanseRange) then
